@@ -1,0 +1,44 @@
+% Improved Latency Analysis
+clc; clear; close all;
+
+% Parameters
+altitudes = linspace(550e3, 35786e3, 500); % Fine range of altitudes (LEO to GEO)
+speed_of_light = 3e8; % Speed of light (m/s)
+processing_delay_mean = 10e-3; % Mean processing delay (10 ms)
+processing_delay_std = 5e-3; % Larger std deviation
+queuing_delay_mean = 5e-3; % Mean queuing delay (5 ms)
+queuing_delay_std = 3e-3; % Larger std deviation
+num_trials = 1e5; % Number of Monte Carlo simulations
+
+% Replace normrnd with randn
+processing_delays = processing_delay_mean + processing_delay_std * randn(num_trials, 1);
+queuing_delays = queuing_delay_mean + queuing_delay_std * randn(num_trials, 1);
+
+% Atmospheric delay
+atmospheric_delay = 1e-3 * exp(-altitudes / 1e6); % Exponential decay
+
+% Simulations
+RTT = zeros(num_trials, length(altitudes));
+for i = 1:length(altitudes)
+    % Propagation delay (one-way)
+    prop_delay = altitudes(i) / speed_of_light;
+    
+    % Total RTT
+    RTT(:, i) = 2 * prop_delay + processing_delays + queuing_delays + atmospheric_delay(i);
+end
+
+% Results: Mean and Std Deviation
+mean_RTT = mean(RTT, 1);
+std_RTT = std(RTT, 1);
+
+% Visualization
+figure;
+fill([altitudes / 1e3, fliplr(altitudes / 1e3)], ...
+    [mean_RTT * 1e3 + std_RTT * 1e3, fliplr(mean_RTT * 1e3 - std_RTT * 1e3)], ...
+    [0.9, 0.9, 0.9], 'EdgeColor', 'none'); % Shaded area for Std Dev
+hold on;
+plot(altitudes / 1e3, mean_RTT * 1e3, '-b', 'LineWidth', 2);
+xlabel('Satellite Altitude (km)');
+ylabel('Round-Trip Time (ms)');
+title('Realistic Latency Analysis with Variability');
+grid on;
