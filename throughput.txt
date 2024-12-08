@@ -1,0 +1,29 @@
+% Throughput Analysis with Smoother Curves
+clc; clear; close all;
+
+% Parameters
+bandwidth = 20e6; % Bandwidth in Hz (20 MHz)
+SNR_values = linspace(5, 20, 500); % Fine range of SNR values (in dB)
+weather_conditions = {'Clear Skies', 'Adverse Weather', 'Severe Storm'};
+weather_factors = [1, 0.6, 0.3]; % Weather degradation factors
+
+% Convert SNR to linear scale
+SNR_linear = 10.^(SNR_values / 10);
+
+% Throughput calculation for different weather conditions
+throughput = zeros(length(SNR_linear), length(weather_factors));
+for i = 1:length(weather_factors)
+    throughput(:, i) = bandwidth * log2(1 + SNR_linear) * weather_factors(i);
+end
+
+% Visualization
+figure;
+hold on;
+for i = 1:length(weather_factors)
+    plot(SNR_values, throughput(:, i) / 1e6, 'LineWidth', 2, 'DisplayName', weather_conditions{i});
+end
+xlabel('SNR (dB)');
+ylabel('Throughput (Mbps)');
+title('Throughput Analysis with More Points');
+legend('Location', 'SouthEast');
+grid on;
